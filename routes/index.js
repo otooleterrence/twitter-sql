@@ -2,18 +2,31 @@
 var express = require('express');
 var router = express.Router();
 var tweetBank = require('../tweetBank');
+var client = require('../db');
 
 module.exports = router;
 
+
 // a reusable function
 function respondWithAllTweets (req, res, next){
-  var allTheTweets = tweetBank.list();
-  res.render('index', {
-    title: 'Twitter.js',
-    tweets: allTheTweets,
-    showForm: true
+
+  var tweetsQuery = client.query('SELECT * FROM tweets', function (err, result) {
+    if (err) return next(err); // pass errors to Express
+    var tweets = result.rows;
+    console.log(tweets);
+    res.render('index', { title: 'Twitter.js', tweets: tweets, showForm: true });
   });
+
+  return tweetsQuery;
 }
+
+// var respondWithAllTweets =
+// client.query('SELECT * FROM tweets', function (err, result) {
+//   if (err) return next(err); // pass errors to Express
+//   var tweets = result.rows;
+//   console.log(tweets);
+//   res.render('index', { title: 'Twitter.js', tweets: tweets, showForm: true });
+// });
 
 // here we basically treet the root view and tweets view as identical
 router.get('/', respondWithAllTweets);
