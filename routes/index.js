@@ -10,10 +10,12 @@ module.exports = router;
 // a reusable function
 function respondWithAllTweets (req, res, next){
 
-  var tweetsQuery = client.query('SELECT * FROM tweets', function (err, result) {
+  var query = 'SELECT tweets.id, name, content FROM tweets INNER JOIN users ON tweets.user_id = users.id';
+
+  var tweetsQuery = client.query(query, function (err, result) {
     if (err) return next(err); // pass errors to Express
     var tweets = result.rows;
-    console.log(tweets);
+    // console.log(tweets);
     res.render('index', { title: 'Twitter.js', tweets: tweets, showForm: true });
   });
 
@@ -34,22 +36,47 @@ router.get('/tweets', respondWithAllTweets);
 
 // single-user page
 router.get('/users/:username', function(req, res, next){
-  var tweetsForName = tweetBank.find({ name: req.params.username });
-  res.render('index', {
-    title: 'Twitter.js',
-    tweets: tweetsForName,
-    showForm: true,
-    username: req.params.username
+  // var tweetsForName = tweetBank.find({ name: req.params.username });
+  // res.render('index', {
+  //   title: 'Twitter.js',
+  //   tweets: tweetsForName,
+  //   showForm: true,
+  //   username: req.params.username
+  // });
+  let userQuery = req.params.username;
+
+  var query = 'SELECT tweets.id, name, content FROM tweets INNER JOIN users ON tweets.user_id = users.id WHERE name= $1';
+
+  var tweetsQuery = client.query(query, [userQuery], function (err, result) {
+    if (err) return next(err); // pass errors to Express
+    var tweets = result.rows;
+    // console.log(tweets);
+    res.render('index', { title: 'Twitter.js', tweets: tweets, showForm: true });
   });
+
+  return tweetsQuery;
 });
 
 // single-tweet page
 router.get('/tweets/:id', function(req, res, next){
-  var tweetsWithThatId = tweetBank.find({ id: Number(req.params.id) });
-  res.render('index', {
-    title: 'Twitter.js',
-    tweets: tweetsWithThatId // an array of only one element ;-)
+  // var tweetsWithThatId = tweetBank.find({ id: Number(req.params.id) });
+  // res.render('index', {
+  //   title: 'Twitter.js',
+  //   tweets: tweetsWithThatId // an array of only one element ;-)
+  // });
+  let idQuery = + req.params.id;
+
+  var query = 'SELECT tweets.id, name, content FROM tweets INNER JOIN users ON tweets.user_id = users.id WHERE tweets.id= $1';
+
+  var tweetsQuery = client.query(query, [idQuery], function (err, result) {
+    if (err) return next(err); // pass errors to Express
+    var tweets = result.rows;
+    console.log(tweets);
+    res.render('index', { title: 'Twitter.js', tweets: tweets, showForm: true });
   });
+
+  return tweetsQuery;
+
 });
 
 // create a new tweet
